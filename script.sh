@@ -1,5 +1,3 @@
-FROM ubuntu
+#!/bin/bash
 
-COPY script.sh /my-script.sh
-
-CMD ["./my-script.sh"]
+echo "Hello from script file by Docker image"
