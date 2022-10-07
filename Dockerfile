@@ -1,5 +1,4 @@
-FROM ubuntu
+FROM nginx
 
-COPY script.sh /my-script.sh
+COPY ./index.html /usr/share/nginx/html/
 
-CMD ["/myscript.sh"]
