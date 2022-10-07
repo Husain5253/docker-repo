@@ -1,0 +1,37 @@
+version: 0.2
+
+env:
+  variables:
+      AWS_REGION: ap-south-1
+      AWS_ACCOUNT_ID: 035772578430
+      AWS_SERVICE_NAME: .dkr.ecr.
+      AWS_DOMAIN_NAME: .amazonaws.com
+      IMAGE_NAME: demo
+      CONTAINER_NAME: demo-container  
+
+#Required sequence. Represents the commands CodeBuild runs during each phase of the build. 
+phases:
+  pre_build:
+    commands:
+      - REPOSITORY_URL="$AWS_ACCOUNT_ID$AWS_SERVICE_NAME$AWS_REGION$AWS_DOMAIN_NAME"
+      - echo Logging in to Amazon ECR..,
+      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $REPOSITORY_URL
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo Building the Docker image...
+      - docker build -t $IMAGE_NAME .
+  post_build:
+    commands:
+      - docker image tag $IMAGE_NAME:latest $REPOSITORY_URL/$IMAGE_NAME:latest
+      - echo image name =  $IMAGE_NAME:latest
+      - echo image url = $REPOSITORY_URL/$IMAGE_NAME:latest  
+      - echo Build and tag stage successfully completed on `date`
+      - echo Pushing the Docker image...
+      - docker push $REPOSITORY_URL/$IMAGE_NAME:latest
+      - echo Writing image definitions file....
+      - printf '[{"name":"'"$CONTAINER_NAME"'","imageUri":"'"$REPOSITORY_URL"'/'"$IMAGE_NAME"':latest"}]' > imagedefinitions.json
+      - cat imagedefinitions.json
+      - echo Build completed on `date`
+artifacts:
+  files: imagedefinitions.json
